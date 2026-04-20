@@ -10,68 +10,93 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
-/* ── ESTÉTICA GANADORA RESTAURADA ── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --bg:#050912;--bg2:#0a0f1e;--bg3:#0f1528;
   --green:#00ffb0;--red:#ff2d5e;--amber:#ffb020;--blue:#3b82f6;--purple:#a855f7;
   --text:#d4dff5;--dim:#3d5070;--dim2:#5a7090;
-  --border:rgba(0,255,176,0.10);
+  --border:rgba(0,255,176,0.10);--border2:rgba(0,255,176,0.20);
+  --font:'JetBrains Mono',monospace;
 }
-html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'JetBrains Mono',monospace;color:var(--text)}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--font);color:var(--text)}
+/* GRID ANIMATION */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,255,176,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,176,.02) 1px,transparent 1px);background-size:40px 40px;animation:gridShift 20s linear infinite}
+@keyframes gridShift{0%{background-position:0 0}100%{background-position:40px 40px}}
 
 .screen{position:fixed;inset:0;z-index:10;display:none;flex-direction:column;overflow:hidden}
 .screen.active{display:flex}
 
-/* PANTALLA DE INICIO */
-.setup-card{margin:auto;width:90%;max-width:340px;background:var(--bg2);padding:30px;border-radius:12px;border:1px solid var(--border);text-align:center}
-.fi{width:100%;padding:16px;background:var(--bg3);border:1px solid #1e2a44;color:#fff;margin:20px 0;border-radius:6px;text-align:center}
-.btn-go{background:var(--green);color:var(--bg);border:none;padding:18px;border-radius:8px;width:100%;font-weight:900;font-family:'Orbitron';cursor:pointer}
+/* HEADER & NAV */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:15px;background:rgba(5,9,18,0.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.hdr-logo{font-family:'Orbitron';font-size:14px;color:var(--green);letter-spacing:2px}
+.hdr-logo span{color:var(--red)}
 
-/* INTERFAZ PRINCIPAL */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:15px;background:rgba(5,9,18,0.9);border-bottom:1px solid var(--border)}
-.sbar{display:flex;gap:8px;padding:10px;overflow-x:auto;background:var(--bg2);border-bottom:1px solid var(--border)}
-.sbar::-webkit-scrollbar{display:none}
-.sbtn{flex-shrink:0;padding:8px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim2);font-size:10px;font-weight:700}
+.sbar{display:flex;gap:8px;padding:10px;overflow-x:auto;background:var(--bg2)}
+.sbtn{flex-shrink:0;padding:8px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim2);font-size:10px;font-weight:700;transition:0.3s}
 .sbtn.active-b{border-color:var(--green);color:var(--green);background:rgba(0,255,176,0.05)}
 .sbtn.active-c{border-color:var(--red);color:var(--red);background:rgba(255,45,94,0.05)}
 
+/* MAIN CONTENT */
 .abody{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:15px;position:relative}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:15px;position:relative;overflow:hidden}
 
-/* MÉTRICAS */
+/* METRICS */
+.price-row{display:flex;justify-content:space-between;align-items:baseline}
+.price-val{font-size:32px;font-weight:900;letter-spacing:-1px}
 .st-label{font-size:9px;color:var(--dim2);text-transform:uppercase;margin-bottom:5px;display:flex;justify-content:space-between}
 .bar-w{height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;margin-bottom:12px}
-.bar-f{height:100%;transition:width 0.4s ease}
+.bar-f{height:100%;transition:width 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67)}
 
-#supreme{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.96);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
+/* IA PANEL */
+.ia-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ia-val{font-size:24px;font-weight:900;text-align:center}
+
+/* GRAVITY VECTOR (MACRO) */
+#macro-tag{position:absolute;top:10px;right:10px;font-size:8px;padding:2px 6px;border-radius:4px;font-weight:900}
+
+/* ALERTAS EXTERNAS UI */
+.notif-toggle{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;margin-top:10px}
+
+/* SUPREME OVERLAY */
+#supreme{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.96);display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center}
 #supreme.active{display:flex}
+.sa-title{font-family:'Orbitron';color:var(--green);font-size:12px;letter-spacing:5px;margin-bottom:20px}
+.sa-btn{background:var(--green);color:var(--bg);border:none;padding:20px 50px;border-radius:12px;font-weight:900;font-size:16px;margin-top:30px}
+
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--green);padding:12px 24px;border-radius:30px;font-size:12px;opacity:0;transition:0.4s;z-index:2000}
+#toast.show{opacity:1;bottom:50px}
 </style>
 </head>
 <body>
 
 <div class="screen active" id="s-setup">
   <div class="setup-card">
-    <div style="font-family:'Orbitron';color:var(--green);font-size:24px;margin-bottom:10px">SNIPER<span>PRO</span> v7.2</div>
+    <div class="hdr-logo" style="font-size:26px;text-align:center;margin-bottom:20px">SNIPER<span>RADAR</span> v7.2</div>
     <input class="fi" id="token" type="password" placeholder="Deriv API Token">
-    <button class="btn-go" id="start-btn" onclick="startApp()">INICIAR SISTEMA</button>
+    <button class="btn-go" id="start-btn">INICIAR SISTEMA QUÁNTICO</button>
+    <p style="font-size:9px;color:var(--dim2);text-align:center;margin-top:15px">Optimizado para Redes Móviles Colombia</p>
   </div>
 </div>
 
 <div class="screen" id="s-app">
   <div class="hdr">
-    <div style="font-family:'Orbitron';font-size:14px;color:var(--green)">SNIPER<span>v7.2</span></div>
-    <div id="ping" style="font-size:9px;color:var(--dim2)">0ms</div>
+    <div class="hdr-logo">SNIPER<span>v7.2</span></div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <div id="ping" style="font-size:9px;color:var(--dim2)">0ms</div>
+      <div id="ws-status" style="width:8px;height:8px;border-radius:50%;background:var(--amber)"></div>
+      <button onclick="toggleSound()" id="sound-btn" style="background:none;border:none;font-size:18px">🔊</button>
+    </div>
   </div>
 
   <div class="sbar" id="symbol-bar"></div>
 
   <div class="abody">
     <div class="card">
-      <div id="sym-label" style="font-size:10px;color:var(--dim2);letter-spacing:2px">B1000 SNIPER CORE</div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline">
-        <div id="price" style="font-size:32px;font-weight:900">0.00</div>
-        <div id="macro-tag" style="font-size:9px;padding:2px 6px;border-radius:4px;background:var(--dim)">MACRO: --</div>
+      <div id="macro-tag">MACRO: NEUTRAL</div>
+      <div id="sym-label" style="font-size:10px;color:var(--dim2);letter-spacing:2px">---</div>
+      <div class="price-row">
+        <div id="price" class="price-val">0.00</div>
+        <div id="pct" style="font-size:14px;font-weight:700">0.00%</div>
       </div>
     </div>
 
@@ -79,162 +104,341 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'JetBrain
       <div class="st-label"><span>Inminencia Exponencial</span><span id="imm-txt">0%</span></div>
       <div class="bar-w"><div id="imm-bar" class="bar-f" style="width:0%;background:var(--amber)"></div></div>
       
-      <div class="st-label"><span>Compresión ATR</span><span id="atr-txt">0%</span></div>
+      <div class="st-label"><span>Compresión ATR (Afinidad)</span><span id="atr-txt">0%</span></div>
       <div class="bar-w"><div id="atr-bar" class="bar-f" style="width:0%;background:var(--blue)"></div></div>
       
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div style="background:rgba(0,255,176,0.03);padding:10px;border-radius:8px;text-align:center">
-          <div class="st-label" style="justify-content:center">IA PROB</div>
-          <div id="ml-pct" style="font-size:24px;font-weight:900;color:var(--green)">50%</div>
+      <div class="ia-grid">
+        <div style="background:rgba(0,255,176,0.03);padding:10px;border-radius:8px">
+          <div class="st-label">Probabilidad IA</div>
+          <div id="ml-pct" class="ia-val" style="color:var(--green)">50%</div>
         </div>
-        <div style="background:rgba(168,85,247,0.03);padding:10px;border-radius:8px;text-align:center">
-          <div class="st-label" style="justify-content:center">GRAVEDAD (Z)</div>
-          <div id="grav-val" style="font-size:24px;font-weight:900;color:var(--purple)">0.00</div>
+        <div style="background:rgba(168,85,247,0.03);padding:10px;border-radius:8px">
+          <div class="st-label">Vector Gravedad</div>
+          <div id="grav-val" class="ia-val" style="color:var(--purple)">0.0</div>
         </div>
       </div>
     </div>
 
     <div id="chart-container" style="height:230px;background:var(--bg2);border-radius:12px;border:1px solid var(--border)"></div>
+
+    <div class="card" id="tactic-card">
+      <div id="tactic-title" style="text-align:center;font-weight:900;font-family:'Orbitron';font-size:14px;margin-bottom:5px">CALIBRANDO...</div>
+      <div id="tactic-desc" style="font-size:10px;color:var(--dim2);text-align:center;line-height:1.4">Analizando ADN del mercado...</div>
+      
+      <div class="notif-toggle">
+        <input type="checkbox" id="ext-alert">
+        <label for="ext-alert" style="font-size:10px;color:var(--text)">Habilitar Alarmas Externas (Push)</label>
+      </div>
+    </div>
   </div>
 </div>
 
 <div id="supreme">
-  <div style="font-family:'Orbitron';color:var(--green);letter-spacing:5px;font-size:12px">ALINEACIÓN SNIPER</div>
-  <div id="sa-dir" style="font-size:48px;font-weight:900;margin:20px 0;color:#fff">---</div>
-  <button class="btn-go" onclick="document.getElementById('supreme').classList.remove('active')">CONFIRMAR</button>
+  <div class="sa-title">ALINEACIÓN SNIPER DETECTADA</div>
+  <div id="sa-sym" style="font-size:20px;font-weight:900;color:#fff;margin-bottom:10px">BOOM 1000</div>
+  <div id="sa-dir" style="font-size:48px;font-weight:900;margin-bottom:10px">---</div>
+  <div id="sa-prob" style="font-size:80px;font-weight:900;color:var(--green)">0%</div>
+  <div id="sa-macro" style="font-size:12px;color:var(--purple);letter-spacing:3px">MACRO ALINEADA</div>
+  <button class="sa-btn" onclick="closeSupreme()">✓ ENTENDIDO</button>
 </div>
 
+<div id="toast"></div>
+
 <script>
-// ── TODOS LOS ÍNDICES RESTAURADOS ──
+// ── CONFIGURACIÓN SNIPER v7.2 (ADN ESPECÍFICO) ──
 const SYMBOLS = [
-  {id:'BOOM1000', label:'B1000', type:'boom', limit:160},
-  {id:'BOOM500',  label:'B500',  type:'boom', limit:110},
-  {id:'BOOM300N', label:'B300',  type:'boom', limit:80},
-  {id:'CRASH1000',label:'C1000', type:'crash',limit:160},
-  {id:'CRASH500', label:'C500',  type:'crash',limit:110},
-  {id:'CRASH300N',label:'C300',  type:'crash',limit:80}
+  {id:'BOOM300N',  label:'B300',  type:'boom',  limit:80,  range: false},
+  {id:'BOOM500',   label:'B500',  type:'boom',  limit:110, range: false},
+  {id:'BOOM1000',  label:'B1000', type:'boom',  limit:160, range: false},
+  {id:'CRASH300N', label:'C300',  type:'crash', limit:80,  range: false},
+  {id:'CRASH500',  label:'C500',  type:'crash', limit:110, range: false},
+  {id:'CRASH1000', label:'C1000', type:'crash', limit:160, range: false},
+  {id:'R_100',     label:'RB100', type:'range', limit:100, range: true},
+  {id:'R_200',     label:'RB200', type:'range', limit:100, range: true}
 ];
 
 const S = {
-  token: '', sym: SYMBOLS[0], data: [], model: null,
-  isCalculating: false, lastInference: 0,
-  ui: { chart: null, series: null }, ws: null
+  token: '', sym: SYMBOLS[1],
+  ws: null, candles: [], ticks: [],
+  lastPrice: null, ticksSinceSpike: 0,
+  ml: { ready: false, model: null },
+  ui: { sound: true, chart: null, series: null },
+  metrics: { atr: 0, gravity: 0, ping: 0 },
+  bgRadar: {}
 };
 
+// ── INICIALIZACIÓN IA ──
 async function initIA() {
-  S.model = tf.sequential();
-  S.model.add(tf.layers.dense({units: 12, inputShape:[50], activation:'tanh'}));
-  S.model.add(tf.layers.dense({units: 1, activation:'sigmoid'}));
-  S.model.compile({optimizer: 'adam', loss: 'binaryCrossentropy'});
+  S.ml.model = tf.sequential({
+    layers: [
+      tf.layers.lstm({units:64, inputShape:[20, 14], returnSequences:false}),
+      tf.layers.dense({units:32, activation:'relu'}),
+      tf.layers.dense({units:1, activation:'sigmoid'})
+    ]
+  });
+  S.ml.model.compile({optimizer: tf.train.adam(0.001), loss: 'binaryCrossentropy'});
+  S.ml.ready = true;
 }
 
-async function startApp() {
-  S.token = document.getElementById('token').value;
-  if(!S.token) return alert("Token requerido");
-  document.getElementById('s-setup').classList.remove('active');
-  document.getElementById('s-app').classList.add('active');
-  
-  // Pequeño delay para que el contenedor del chart tenga dimensiones reales
-  setTimeout(() => {
-    initChart();
-    buildSymbols();
-    initIA().then(connect);
-  }, 300);
-}
-
-function initChart() {
-  const container = document.getElementById('chart-container');
-  S.ui.chart = LightweightCharts.createChart(container, {
-    layout: { background: { color: '#0a0f1e' }, textColor: '#5a7090', fontSize: 10 },
-    grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(255,255,255,0.03)' } },
-    timeScale: { borderVisible: false, secondsVisible: true },
-    crosshair: { mode: LightweightCharts.CrosshairMode.Normal }
-  });
-  // VELAS REALES RESTAURADAS
-  S.ui.series = S.ui.chart.addCandlestickSeries({
-    upColor: '#00ffb0', downColor: '#ff2d5e', borderVisible: false,
-    wickUpColor: '#00ffb0', wickDownColor: '#ff2d5e'
-  });
-}
-
-function buildSymbols() {
-  const bar = document.getElementById('symbol-bar');
-  bar.innerHTML = '';
-  SYMBOLS.forEach(s => {
-    const btn = document.createElement('button');
-    btn.className = `sbtn ${s.id === S.sym.id ? (s.type==='boom'?'active-b':'active-c') : ''}`;
-    btn.textContent = s.label;
-    btn.onclick = () => { S.sym = s; S.data = []; buildSymbols(); connect(); };
-    bar.appendChild(btn);
-  });
-  document.getElementById('sym-label').textContent = S.sym.label + " SNIPER CORE";
-}
-
-async function runInference() {
-  if (S.isCalculating || S.data.length < 50) return;
-  const now = Date.now();
-  if (now - S.lastInference < 600) return;
-
-  S.isCalculating = true;
-  S.lastInference = now;
-
-  const result = tf.tidy(() => {
-    const raw = S.data.slice(-50);
-    const mean = raw.reduce((a, b) => a + b) / 50;
-    const std = Math.sqrt(raw.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / 50) || 0.001;
-    const normalized = raw.map(v => (v - mean) / std);
-    const input = tf.tensor2d([normalized]);
-    return { prob: S.model.predict(input).dataSync()[0], std };
-  });
-
-  requestAnimationFrame(() => {
-    document.getElementById('ml-pct').textContent = (result.prob * 100).toFixed(0) + "%";
-    document.getElementById('grav-val').textContent = (result.std / 10).toFixed(2);
-    if (result.prob > 0.85 || result.prob < 0.15) {
-      document.getElementById('supreme').classList.add('active');
-      document.getElementById('sa-dir').textContent = result.prob > 0.5 ? "CALL" : "PUT";
-    }
-  });
-
-  await tf.nextFrame();
-  S.isCalculating = false;
-}
-
+// ── CONEXIÓN RESILIENTE ──
 function connect() {
   if (S.ws) S.ws.close();
-  let startTime = Date.now();
+  const startPing = Date.now();
   S.ws = new WebSocket("wss://ws.binaryws.com/websockets/v3?app_id=1089");
 
   S.ws.onopen = () => {
-    S.ws.send(JSON.stringify({authorize: S.token}));
-    // PETICIÓN DE VELAS PARA LA GRÁFICA
-    S.ws.send(JSON.stringify({ticks_history: S.sym.id, style:'candles', granularity:60, count:50, subscribe:1}));
+    S.metrics.ping = Date.now() - startPing;
+    document.getElementById('ping').textContent = S.metrics.ping + 'ms';
+    document.getElementById('ws-status').style.background = 'var(--green)';
+    
+    // Suscripción al activo principal
+    S.ws.send(JSON.stringify({ticks_history: S.sym.id, style:'candles', granularity:60, count:100, end:'latest', subscribe:1}));
     S.ws.send(JSON.stringify({ticks: S.sym.id, subscribe:1}));
+
+    // Radar Global Inteligente (Multiplexado)
+    SYMBOLS.forEach(sy => {
+      if(sy.id !== S.sym.id) {
+        S.ws.send(JSON.stringify({ticks: sy.id, subscribe:1}));
+        S.bgRadar[sy.id] = { last:0, ticks:0, alerted:false };
+      }
+    });
   };
 
   S.ws.onmessage = (e) => {
     const d = JSON.parse(e.data);
-    // CARGAR VELAS INICIALES Y ACTUALIZAR
-    if (d.msg_type === 'candles') {
-      const candles = d.candles.map(c => ({time:c.epoch, open:Number(c.open), high:Number(c.high), low:Number(c.low), close:Number(c.close)}));
-      S.ui.series.setData(candles);
+    if(d.msg_type === 'candles') {
+      S.candles = d.candles.map(c => ({time:c.epoch, open:Number(c.open), high:Number(c.high), low:Number(c.low), close:Number(c.close)}));
+      if(S.ui.series) S.ui.series.setData(S.candles);
+      calculateMacro();
+      train();
     }
-    if (d.msg_type === 'ohlc' && d.ohlc.symbol === S.sym.id) {
-       const o = d.ohlc;
-       S.ui.series.update({time:o.open_time, open:Number(o.open), high:Number(o.high), low:Number(o.low), close:Number(o.close)});
-    }
-    if (d.msg_type === 'tick' && d.tick.symbol === S.sym.id) {
+    if(d.msg_type === 'tick') {
       const p = Number(d.tick.quote);
-      const now = Date.now();
-      document.getElementById('ping').textContent = (now - startTime) + "ms";
-      startTime = now;
-      document.getElementById('price').textContent = p.toFixed(2);
-      S.data.push(p);
-      if (S.data.length > 150) S.data.shift();
-      runInference();
+      if(d.tick.symbol === S.sym.id) updateActive(p);
+      else updateRadar(d.tick.symbol, p);
+    }
+    if(d.msg_type === 'ohlc' && d.ohlc.symbol === S.sym.id) {
+      const o = d.ohlc;
+      const nc = {time:o.open_time, open:Number(o.open), high:Number(o.high), low:Number(o.low), close:Number(o.close)};
+      if(S.candles.length && nc.time > S.candles[S.candles.length-1].time) {
+        S.candles.push(nc);
+        if(S.candles.length > 200) S.candles.shift();
+        calculateMacro();
+        predict();
+      }
+      if(S.ui.series) S.ui.series.update(nc);
     }
   };
 }
+
+// ── CÁLCULO DE MACRO-TENDENCIA (VECTOR GRAVEDAD) ──
+function calculateMacro() {
+  if(S.candles.length < 50) return;
+  const recent = S.candles.slice(-50);
+  const start = recent[0].close;
+  const end = recent[recent.length-1].close;
+  
+  // Pendiente normalizada
+  S.metrics.gravity = ((end - start) / start) * 1000;
+  
+  const tag = document.getElementById('macro-tag');
+  const gVal = S.metrics.gravity;
+  
+  if(gVal > 0.5) { tag.textContent = "MACRO: ALCISTA MÁXIMA"; tag.style.background = 'var(--green)'; tag.style.color = '#000'; }
+  else if(gVal < -0.5) { tag.textContent = "MACRO: BAJISTA FUERTE"; tag.style.background = 'var(--red)'; tag.style.color = '#fff'; }
+  else { tag.textContent = "MACRO: NEUTRAL"; tag.style.background = 'var(--dim)'; tag.style.color = '#fff'; }
+  
+  document.getElementById('grav-val').textContent = gVal.toFixed(2);
+}
+
+// ── RADAR ASIMÉTRICO (ADN POR ÍNDICE) ──
+function updateRadar(id, p) {
+  const r = S.bgRadar[id];
+  const info = SYMBOLS.find(x => x.id === id);
+  if(!r || !info) return;
+
+  if(r.last) {
+    const diff = Math.abs(p - r.last) / r.last;
+    if(diff > 0.0012) { r.ticks = 0; r.alerted = false; }
+    else r.ticks++;
+
+    // Umbral dinámico según ADN del índice
+    if(r.ticks > info.limit && !r.alerted) {
+      r.alerted = true;
+      triggerExternalAlert(info.label, r.ticks);
+    }
+  }
+  r.last = p;
+}
+
+// ── ACTUALIZACIÓN ACTIVO PRINCIPAL ──
+function updateActive(p) {
+  if(S.lastPrice) {
+    const diff = Math.abs(p - S.lastPrice) / S.lastPrice;
+    if(diff > 0.001) { S.ticksSinceSpike = 0; vib([50, 50]); }
+    else S.ticksSinceSpike++;
+  }
+  S.lastPrice = p;
+
+  // Inminencia Exponencial (Afinidad Cuántica)
+  const imm = Math.min(100, Math.pow(S.ticksSinceSpike / S.sym.limit, 1.5) * 100);
+  
+  // UI Update
+  document.getElementById('price').textContent = p.toFixed(2);
+  document.getElementById('imm-bar').style.width = imm + '%';
+  document.getElementById('imm-txt').textContent = imm.toFixed(0) + '%';
+  
+  // ATR Compresión
+  if(S.candles.length > 10) {
+    const last = S.candles.slice(-10);
+    const range = last.map(c => c.high - c.low);
+    const avg = range.reduce((a,b)=>a+b,0)/10;
+    const current = range[9];
+    S.metrics.atr = Math.max(0, Math.min(100, (1 - (current/avg)) * 100));
+    document.getElementById('atr-bar').style.width = S.metrics.atr + '%';
+    document.getElementById('atr-txt').textContent = S.metrics.atr.toFixed(0) + '%';
+  }
+
+  checkSupreme(imm);
+}
+
+// ── LÓGICA SNIPER (ALINEACIÓN TOTAL) ──
+function checkSupreme(imm) {
+  const prob = parseInt(document.getElementById('ml-pct').textContent);
+  const isBoom = S.sym.type === 'boom';
+  const isCrash = S.sym.type === 'crash';
+  const now = Date.now();
+
+  // ALINEACIÓN QUÁNTICA: ML + Inminencia + Macro + ATR
+  let signal = false;
+  if(isBoom && prob > 82 && imm > 75 && S.metrics.gravity > -0.2) signal = true;
+  if(isCrash && prob < 18 && imm > 75 && S.metrics.gravity < 0.2) signal = true;
+
+  if(signal && (now - S.lastSupreme > 60000)) {
+    S.lastSupreme = now;
+    showSupreme(isBoom ? "CALL / COMPRA" : "PUT / VENTA", prob);
+  }
+}
+
+// ── PREDICCIÓN IA (SINTONÍA FINA) ──
+async function predict() {
+  if(!S.ml.ready || S.candles.length < 21) return;
+  const feats = getFeatures(S.candles.slice(-20));
+  const p = tf.tidy(() => S.ml.model.predict(tf.tensor3d([feats])).dataSync()[0]);
+  const pct = (p * 100).toFixed(0);
+  
+  document.getElementById('ml-pct').textContent = pct + "%";
+  
+  // Actualizar Consejos Tácticos
+  const title = document.getElementById('tactic-title');
+  const desc = document.getElementById('tactic-desc');
+  
+  if(p > 0.80) {
+    title.textContent = "🔥 ALTA PRESIÓN ALCISTA";
+    title.style.color = "var(--green)";
+    desc.textContent = S.metrics.gravity > 0 ? "Alineación Macro detectada. Sostener para múltiples spikes." : "Scalp rápido. Contra-tendencia detectada.";
+  } else if(p < 0.20) {
+    title.textContent = "🩸 COLAPSO INMINENTE";
+    title.style.color = "var(--red)";
+    desc.textContent = S.metrics.gravity < 0 ? "Fuerza bajista total. Entrar y buscar Hold." : "Rebote corto. Cerrar al primer spike.";
+  } else {
+    title.textContent = "⏸️ MERCADO EN RUIDO";
+    title.style.color = "var(--amber)";
+    desc.textContent = "Baja probabilidad cuántica. Esperar compresión del ATR.";
+  }
+}
+
+// ── AUXILIARES (ENTRENAMIENTO Y FEATURES) ──
+async function train() {
+  if(!S.ml.ready || S.candles.length < 40) return;
+  const feats = getFeatures(S.candles);
+  const xs = [], ys = [];
+  for(let i=20; i<S.candles.length-1; i++){
+    xs.push(feats.slice(i-20, i));
+    ys.push(S.candles[i+1].close > S.candles[i].close ? 1 : 0);
+  }
+  const tXs = tf.tensor3d(xs);
+  const tYs = tf.tensor2d(ys, [ys.length, 1]);
+  await S.model.fit(tXs, tYs, {epochs:8, verbose:0});
+  tXs.dispose(); tYs.dispose();
+  document.getElementById('ml-acc').textContent = "Acc: Calibrado";
+}
+
+function getFeatures(cands) {
+  return cands.map((c, i) => [
+    (c.close - c.open) / (c.high - c.low || 0.001),
+    (c.close / c.open - 1),
+    S.metrics.atr / 100,
+    S.metrics.gravity / 10,
+    0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5
+  ]);
+}
+
+// ── UI Y NOTIFICACIONES ──
+function triggerExternalAlert(label, ticks) {
+  if(document.getElementById('ext-alert').checked) {
+    if(Notification.permission === "granted") {
+      new Notification(`🚨 SNIPER: ${label}`, { body: `Zona Crítica detectada (${ticks} ticks). Pulsa para entrar.` });
+    }
+  }
+  toast(`RADAR: ${label} en zona de compresión!`);
+}
+
+function showSupreme(dir, prob) {
+  document.getElementById('sa-sym').textContent = S.sym.label;
+  document.getElementById('sa-dir').textContent = dir;
+  document.getElementById('sa-dir').style.color = dir.includes("CALL") ? 'var(--green)' : 'var(--red)';
+  document.getElementById('sa-prob').textContent = prob + "%";
+  document.getElementById('supreme').classList.add('active');
+  vib([500, 100, 500, 100, 500]);
+}
+
+function closeSupreme() { document.getElementById('supreme').classList.remove('active'); }
+function toggleSound() { S.ui.sound = !S.ui.sound; document.getElementById('sound-btn').textContent = S.ui.sound ? '🔊' : '🔇'; }
+function vib(p) { if(navigator.vibrate) navigator.vibrate(p); }
+function toast(m) { const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
+
+// ── ARRANQUE DE SISTEMA ──
+document.getElementById('start-btn').onclick = async () => {
+  S.token = document.getElementById('token').value;
+  if(!S.token) return alert("Ingresa tu token de Deriv");
+  
+  if("Notification" in window) Notification.requestPermission();
+  
+  document.getElementById('s-setup').classList.remove('active');
+  document.getElementById('s-app').classList.add('active');
+  
+  setTimeout(() => {
+    S.ui.chart = LightweightCharts.createChart(document.getElementById('chart-container'), {
+      autoSize: true,
+      layout: { background: { color: '#0a0f1e' }, textColor: '#5a7090' },
+      grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(255,255,255,0.03)' } },
+      timeScale: { borderVisible: false }
+    });
+    S.ui.series = S.ui.chart.addCandlestickSeries({ upColor:'#00ffb0', downColor:'#ff2d5e', borderVisible:false });
+    buildSymbols();
+    connect();
+  }, 200);
+};
+
+function buildSymbols() {
+  const b = document.getElementById('symbol-bar');
+  b.innerHTML = '';
+  SYMBOLS.forEach(sy => {
+    const btn = document.createElement('button');
+    btn.className = `sbtn ${sy.id === S.sym.id ? (sy.type==='boom'?'active-b':'active-c') : ''}`;
+    btn.textContent = sy.label;
+    btn.onclick = () => { S.sym = sy; S.ticksSinceSpike = 0; buildSymbols(); connect(); };
+    b.appendChild(btn);
+  });
+  document.getElementById('sym-label').textContent = S.sym.label;
+}
+
+window.onload = async () => {
+  await initIA();
+  setTimeout(() => document.getElementById('s-setup').classList.add('active'), 500);
+};
 </script>
 </body>
 </html>
